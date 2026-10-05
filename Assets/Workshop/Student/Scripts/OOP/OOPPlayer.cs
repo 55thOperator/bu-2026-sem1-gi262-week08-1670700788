@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Solution
 {
@@ -8,6 +9,8 @@ namespace Solution
     {
         public Inventory inventory;
         public ActionHistoryManager actionHistoryManager;
+        private InputAction moveAction;
+        private InputAction fireAction;
 
         public bool isAutoMoving = false; // Flag to control auto-movement
 
@@ -17,46 +20,46 @@ namespace Solution
             PrintInfo();
             GetRemainEnergy();
             inventory = GetComponent<Inventory>();
+            moveAction = InputSystem.actions.FindAction("Move");
+            fireAction = InputSystem.actions.FindAction("Attack");
 
         }
 
         public void Update()
-        {           
-
+        {
             // Manual input is only processed if not in auto-move mode
-            if (!isAutoMoving)
+            if (isAutoMoving)
             {
-                if (Input.GetKeyDown(KeyCode.W))
-                {
-                    Move(Vector2.up);
-                }
-                if (Input.GetKeyDown(KeyCode.S))
-                {
-                    Move(Vector2.down);
-                }
-                if (Input.GetKeyDown(KeyCode.A))
-                {
-                    Move(Vector2.left);
-                }
-                if (Input.GetKeyDown(KeyCode.D))
-                {
-                    Move(Vector2.right);
-                }
-                if (Input.GetKeyDown(KeyCode.E))
-                {
-                    UseFireStorm();
-                }
-                // Input for Undo (U key)
-                if (Input.GetKeyDown(KeyCode.Z))
-                {
-                    actionHistoryManager.UndoLastMove(this);
-                }
+                return;
+            }
 
-                // Input for starting an example auto-move sequence (Q key)
-                if (Input.GetKeyDown(KeyCode.Q) && !isAutoMoving)
-                {
-                    actionHistoryManager.StartAutoMoveSequence(this);
-                }
+            if (moveAction.triggered)
+            {
+                Move(moveAction.ReadValue<Vector2>());
+            }
+            Keyboard keyboard = Keyboard.current;
+            bool firePressed = fireAction.triggered;
+            if (keyboard != null)
+            {
+                firePressed |= keyboard.eKey.wasPressedThisFrame;
+            }
+            if (firePressed)
+            {
+                UseFireStorm();
+            }
+
+            if (keyboard == null)
+            {
+                return;
+            }
+
+            if (keyboard.zKey.wasPressedThisFrame)
+            {
+                actionHistoryManager.UndoLastMove(this);
+            }
+            if (keyboard.qKey.wasPressedThisFrame)
+            {
+                actionHistoryManager.StartAutoMoveSequence(this);
             }
         }
         public override void Move(Vector2 direction)

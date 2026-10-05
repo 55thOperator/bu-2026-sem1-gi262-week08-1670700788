@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 
     public class SkillBook : MonoBehaviour
@@ -43,7 +44,8 @@ using UnityEngine;
 
         public void Update()
         {
-            if (Input.GetKeyDown(KeyCode.P))
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard != null && keyboard.pKey.wasPressedThisFrame)
             {
                 attackSkillTree.rootSkill.PrintSkillTreeHierarchy("");
                 // attackSkillTree.rootSkill.PrintSkillTree();
